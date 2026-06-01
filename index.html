@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HeartBeat.io</title>
+<link href="https://fonts.googleapis.com/css2?family=Grandstander:wght@400;700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hue: 160;
+    --bg: hsl(var(--hue), 40%, 8%);
+    --bg2: hsl(var(--hue), 38%, 12%);
+    --card: hsl(var(--hue), 35%, 13%);
+    --card2: hsl(var(--hue), 32%, 17%);
+    --border: hsla(var(--hue), 70%, 60%, 0.13);
+    --border2: hsla(var(--hue), 70%, 60%, 0.26);
+    --text: hsl(var(--hue), 30%, 92%);
+    --muted: hsl(var(--hue), 20%, 58%);
+    --soft: hsl(var(--hue), 18%, 40%);
+    --accent: hsl(var(--hue), 75%, 62%);
+    --accent2: hsl(var(--hue), 70%, 50%);
+    --up: #4ade80;
+    --up-bg: rgba(74,222,128,0.11);
+    --up-text: #4ade80;
+    --slow: #fbbf24;
+    --slow-bg: rgba(251,191,36,0.11);
+    --slow-text: #fbbf24;
+    --down: #f87171;
+    --down-bg: rgba(248,113,113,0.10);
+    --down-text: #f87171;
+    --pending: #a78bfa;
+    --pending-bg: rgba(167,139,250,0.11);
+    --pending-text: #a78bfa;
+  }
+
+  [data-theme="light"] {
+    --bg: hsl(var(--hue), 50%, 96%);
+    --bg2: hsl(var(--hue), 45%, 90%);
+    --card: #ffffff;
+    --card2: hsl(var(--hue), 40%, 95%);
+    --border: hsla(var(--hue), 60%, 40%, 0.14);
+    --border2: hsla(var(--hue), 60%, 40%, 0.28);
+    --text: hsl(var(--hue), 40%, 12%);
+    --muted: hsl(var(--hue), 25%, 42%);
+    --soft: hsl(var(--hue), 20%, 62%);
+    --accent: hsl(var(--hue), 65%, 38%);
+    --accent2: hsl(var(--hue), 65%, 28%);
+    --up: #16a34a;
+    --up-bg: rgba(22,163,74,0.09);
+    --up-text: #16a34a;
+    --slow: #d97706;
+    --slow-bg: rgba(217,119,6,0.09);
+    --slow-text: #d97706;
+    --down: #dc2626;
+    --down-bg: rgba(220,38,38,0.08);
+    --down-text: #dc2626;
+    --pending: #7c3aed;
+    --pending-bg: rgba(124,58,237,0.08);
+    --pending-text: #7c3aed;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1.5rem 4rem;
+    transition: background 1s, color 0.4s;
+  }
+
+  .wrap { max-width: 700px; margin: 0 auto; }
+
+  .header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 2rem;
+  }
+
+  .logo-wrap {
+    width: 54px; height: 54px; border-radius: 18px;
+    background: var(--card2);
+    border: 2px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 1s, background 1s;
+  }
+
+  .hb-svg { animation: heartPulse 1.8s ease-in-out infinite; }
+
+  .title-block { flex: 1; }
+  .title-block h1 {
+    font-family: 'Grandstander', cursive;
+    font-size: 26px; font-weight: 900;
+    color: var(--text); letter-spacing: -0.3px; line-height: 1;
+    transition: color 1s;
+  }
+  .title-block h1 em { font-style: normal; color: var(--accent); transition: color 1s; }
+  .title-block p { font-size: 13px; color: var(--muted); margin-top: 4px; transition: color 1s; }
+
+  .theme-btn {
+    width: 42px; height: 42px; border-radius: 14px;
+    background: var(--card); border: 2px solid var(--border2);
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; font-size: 18px;
+    transition: transform 0.2s, background 1s, border-color 1s;
+    flex-shrink: 0;
+  }
+  .theme-btn:hover { transform: scale(1.1); }
+
+  .stats {
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 10px; margin-bottom: 1.8rem;
+  }
+
+  .stat {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 1rem 0.8rem;
+    text-align: center;
+    transition: transform 0.2s, border-color 0.2s, background 1s;
+  }
+  .stat:hover { transform: translateY(-3px); border-color: var(--border2); }
+
+  .stat-num {
+    font-family: 'Grandstander', cursive;
+    font-size: 30px; font-weight: 900; line-height: 1; margin-bottom: 4px;
+    transition: color 1s;
+  }
+  .stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); transition: color 1s; }
+  .stat-num.c-accent { color: var(--accent); }
+  .stat-num.c-up { color: var(--up); }
+  .stat-num.c-slow { color: var(--slow); }
+  .stat-num.c-down { color: var(--down); }
+
+  .section-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .section-header span {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.09em; color: var(--muted); transition: color 1s;
+  }
+  .section-line { flex: 1; height: 1px; background: var(--border); transition: background 1s; }
+  .refresh-tag {
+    font-size: 11px; color: var(--soft);
+    display: flex; align-items: center; gap: 5px; transition: color 1s;
+  }
+  .rdot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); animation: blink 2s infinite; flex-shrink: 0;
+    transition: background 1s;
+  }
+
+  .targets { display: flex; flex-direction: column; gap: 10px; }
+
+  .target {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 22px;
+    padding: 1.1rem 1.3rem;
+    display: flex; align-items: center; gap: 14px;
+    transition: transform 0.2s, border-color 0.2s, background 1s;
+    animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  .target:hover { transform: translateY(-2px); border-color: var(--border2); }
+  .target.is-down { border-color: rgba(248,113,113,0.28); }
+  .target.is-slow { border-color: rgba(251,191,36,0.28); }
+
+  .pulse-wrap { position: relative; width: 14px; height: 14px; flex-shrink: 0; }
+  .pulse-dot { width: 14px; height: 14px; border-radius: 50%; position: absolute; top:0; left:0; }
+  .pulse-ring { width: 14px; height: 14px; border-radius: 50%; position: absolute; top:0; left:0; opacity:0; }
+  .pulse-wrap.up .pulse-dot { background: var(--up); }
+  .pulse-wrap.up .pulse-ring { background: var(--up); animation: ripple 1.8s ease-out infinite; }
+  .pulse-wrap.slow .pulse-dot { background: var(--slow); animation: flickr 1.2s infinite; }
+  .pulse-wrap.slow .pulse-ring { background: var(--slow); animation: ripple 1.2s ease-out infinite; }
+  .pulse-wrap.down .pulse-dot { background: var(--down); }
+  .pulse-wrap.down .pulse-ring { background: var(--down); animation: ripple 0.9s ease-out infinite; }
+  .pulse-wrap.pending .pulse-dot { background: var(--pending); animation: flickr 0.8s infinite; }
+  .pulse-wrap.pending .pulse-ring { background: var(--pending); animation: ripple 1s ease-out infinite; }
+
+  .target-info { flex: 1; min-width: 0; }
+  .target-name {
+    font-family: 'Grandstander', cursive;
+    font-size: 16px; font-weight: 800; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: color 1s;
+  }
+  .target-url { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 1s; }
+
+  .bar-track { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 8px; transition: background 1s; }
+  .bar-fill { height: 100%; border-radius: 999px; transition: width 0.7s ease; }
+  .bar-fill.up { background: var(--up); }
+  .bar-fill.slow { background: var(--slow); }
+  .bar-fill.down { background: var(--down); width: 0 !important; }
+  .bar-fill.pending { background: var(--border2); animation: shimmer 1.4s infinite; }
+
+  .target-right { text-align: right; flex-shrink: 0; }
+  .badge {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 3px 12px; border-radius: 999px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .badge.up { background: var(--up-bg); color: var(--up-text); }
+  .badge.slow { background: var(--slow-bg); color: var(--slow-text); }
+  .badge.down { background: var(--down-bg); color: var(--down-text); }
+  .badge.pending { background: var(--pending-bg); color: var(--pending-text); }
+
+  .last-seen { font-size: 12px; color: var(--muted); margin-top: 5px; transition: color 1s; }
+  .avg-ms { font-size: 11px; color: var(--soft); margin-top: 2px; transition: color 1s; }
+
+  .empty {
+    text-align: center; padding: 4rem 2rem;
+    background: var(--card); border: 2px dashed var(--border2);
+    border-radius: 24px; transition: background 1s, border-color 1s;
+  }
+  .empty .big { font-size: 52px; margin-bottom: 14px; }
+  .empty h3 { font-family: 'Grandstander', cursive; font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .empty p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .empty code { display: inline-block; margin-top: 10px; font-size: 12px; background: var(--bg2); padding: 4px 10px; border-radius: 8px; color: var(--accent); }
+
+  @keyframes heartPulse {
+    0%,100%{transform:scale(1)} 14%{transform:scale(1.22)} 28%{transform:scale(1)} 42%{transform:scale(1.14)} 56%{transform:scale(1)}
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  @keyframes ripple { 0%{transform:scale(1);opacity:0.4} 100%{transform:scale(2.6);opacity:0} }
+  @keyframes flickr { 0%,100%{opacity:1} 50%{opacity:0.55} }
+  @keyframes shimmer { 0%,100%{opacity:0.35} 50%{opacity:0.8} }
+  @keyframes popIn { 0%{opacity:0;transform:scale(0.93) translateY(10px)} 100%{opacity:1;transform:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="logo-wrap">
+      <svg class="hb-svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
+        <path d="M2 15h5l3-8 4 16 3.5-11 2.5 3H28" stroke="var(--accent)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="title-block">
+      <h1>Heart<em>Beat</em>.io</h1>
+      <p>keeping your bots alive, one ping at a time</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" aria-label="Toggle theme"></button>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num c-accent" id="s-total">—</div>
+      <div class="stat-label">targets</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num c-up" id="s-up">—</div>
+      <div class="stat-label">online</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num c-slow" id="s-slow">—</div>
+      <div class="stat-label">slow</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num c-down" id="s-down">—</div>
+      <div class="stat-label">offline</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span>targets</span>
+    <div class="section-line"></div>
+    <div class="refresh-tag">
+      <div class="rdot"></div>
+      <span id="refreshLabel">loading...</span>
+    </div>
+  </div>
+
+  <div class="targets" id="targets">
+    <div class="empty">
+      <div class="big" style="font-family:'Grandstander',cursive;font-size:32px;letter-spacing:-1px;color:var(--accent);">♡ ··· ♡</div>
+      <h3>Loading targets...</h3>
+    </div>
+  </div>
+
+</div>
+<script>
+  // Hue shift — cycles through full color wheel every 2 minutes
+  let hue = 160;
+  function shiftHue() {
+    hue = (hue + 0.15) % 360;
+    document.documentElement.style.setProperty('--hue', hue);
+  }
+  setInterval(shiftHue, 50);
+
+  // Time-aware theme
+  const hour = new Date().getHours();
+  const isNight = hour >= 20 || hour < 7;
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  let dark = isNight || prefersDark;
+
+  const sunSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.93" y1="4.93" x2="7.05" y2="7.05"/><line x1="16.95" y1="16.95" x2="19.07" y2="19.07"/><line x1="4.93" y1="19.07" x2="7.05" y2="16.95"/><line x1="16.95" y1="7.05" x2="19.07" y2="4.93"/></svg>`;
+  const moonSVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
+  function applyTheme() {
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeBtn').innerHTML = dark ? sunSVG : moonSVG;
+  }
+  applyTheme();
+  document.getElementById('themeBtn').addEventListener('click', () => { dark = !dark; applyTheme(); });
+
+  function timeAgo(ms) {
+    if (ms === null) return 'never';
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return s + 's ago';
+    const m = Math.floor(s / 60);
+    if (m < 60) return m + 'm ' + (s % 60) + 's ago';
+    return Math.floor(m / 60) + 'h ago';
+  }
+
+  function barWidth(status, avgMs) {
+    if (status === 'down') return 0;
+    if (status === 'pending') return 30;
+    if (!avgMs) return 55;
+    if (avgMs < 150) return 96;
+    if (avgMs < 300) return 80;
+    if (avgMs < 600) return 60;
+    if (avgMs < 1000) return 42;
+    return 25;
+  }
+
+  function renderTargets(targets) {
+    const el = document.getElementById('targets');
+    if (!targets || !targets.length) {
+      el.innerHTML = `<div class="empty">
+        <div class="big">🤔</div>
+        <h3>No targets configured</h3>
+        <p>Add env vars to get started</p>
+        <code>PING_1=Fern | https://fernbot.onrender.com</code>
+      </div>`;
+      return;
+    }
+    el.innerHTML = targets.map((t, i) => {
+      const s = t.status || 'pending';
+      const bw = barWidth(s, t.avgMs);
+      const label = s === 'up' ? 'online' : s === 'slow' ? 'slow' : s === 'down' ? 'offline' : 'checking';
+      const ping = t.avgMs ? t.avgMs + 'ms avg' : '—';
+      const ago = t.lastPingAgo !== null ? timeAgo(t.lastPingAgo) : 'not yet';
+      const cls = s === 'down' ? ' is-down' : s === 'slow' ? ' is-slow' : '';
+      return `<div class="target${cls}" style="animation-delay:${i*0.07}s">
+        <div class="pulse-wrap ${s}">
+          <div class="pulse-ring"></div>
+          <div class="pulse-dot"></div>
+        </div>
+        <div class="target-info">
+          <div class="target-name">${t.name}</div>
+          <div class="target-url">${t.url}</div>
+          <div class="bar-track"><div class="bar-fill ${s}" style="width:${bw}%"></div></div>
+        </div>
+        <div class="target-right">
+          <span class="badge ${s}">${label}</span>
+          <div class="last-seen">${ago}</div>
+          <div class="avg-ms">${ping}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderSummary(s) {
+    document.getElementById('s-total').textContent = s.total;
+    document.getElementById('s-up').textContent = s.up;
+    document.getElementById('s-slow').textContent = s.slow;
+    document.getElementById('s-down').textContent = s.down;
+  }
+
+  let lastRefresh = null;
+  function updateLabel() {
+    const el = document.getElementById('refreshLabel');
+    if (!lastRefresh) { el.textContent = 'loading...'; return; }
+    const s = Math.floor((Date.now() - lastRefresh) / 1000);
+    el.textContent = `refreshed ${s}s ago`;
+  }
+
+  async function fetchData() {
+    try {
+      const [targets, summary] = await Promise.all([
+        fetch('/api/targets').then(r => r.json()),
+        fetch('/api/summary').then(r => r.json()),
+      ]);
+      renderTargets(targets);
+      renderSummary(summary);
+      lastRefresh = Date.now();
+    } catch(e) { console.error('fetch failed', e); }
+  }
+
+  fetchData();
+  setInterval(fetchData, 30000);
+  setInterval(updateLabel, 1000);
+</script>
+</body>
+</html>
