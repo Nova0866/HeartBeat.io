@@ -33,10 +33,10 @@ async function registerCommands() {
   const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
   try {
     await rest.put(
-      Routes.applicationCommands(CLIENT_ID),
+      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
       { body: [heartbeatCommand.toJSON()] }
     );
-    console.log('Slash commands registered globally');
+    console.log('Slash commands registered');
   } catch (err) {
     console.error('Command registration failed:', err.message);
   }
@@ -60,21 +60,27 @@ client.once('ready', async () => {
   try {
     const guild = await client.guilds.fetch(GUILD_ID);
     await guild.members.fetch();
+    const { getBot } = require('./db');
 
     for (const [key, discordId] of Object.entries(BOT_IDS)) {
       const member = guild.members.cache.get(discordId);
       const status = resolveStatus(member?.presence);
 
+      // Ensure row exists in DB first
+      const existing = await getBot(key);
+      if (!existing) {
+        await setBotStartedAt(key, key, discordId, status !== 'offline' ? Date.now() : null);
+      }
+
+      // Now update discord status
       await setBotDiscordStatus(key, status);
 
       if (status === 'offline') {
         await setBotOffline(key);
-      } else {
-        const { getBot } = require('./db');
-        const existing = await getBot(key);
-        if (!existing?.started_at) {
-          await setBotStartedAt(key, key, discordId, Date.now());
-        }
+      }
+      // If online, we only stamp started_at if there isn't one already
+      else if (!existing?.started_at) {
+        await setBotStartedAt(key, key, discordId, Date.now());
       }
     }
   } catch (err) {
@@ -97,6 +103,13 @@ client.on('presenceUpdate', async (oldPresence, newPresence) => {
   if (oldStatus === newStatus) return;
 
   console.log(`Presence: ${key} ${oldStatus} -> ${newStatus}`);
+
+  // Ensure bot row exists first
+  const { getBot } = require('./db');
+  const existing = await getBot(key);
+  if (!existing) {
+    await setBotStartedAt(key, key, discordId, newStatus !== 'offline' ? Date.now() : null);
+  }
 
   if (oldStatus === 'offline' && newStatus !== 'offline') {
     await setBotStartedAt(key, key, discordId, Date.now());
