@@ -35,10 +35,15 @@ function formatTarget(target, dbBot) {
   const latency      = target.avgMs ? `${target.avgMs}ms` : '—';
   const uptime       = dbBot?.started_at ? onlineFor(dbBot.started_at) : null;
   const uptimeStr    = uptime
-    ? `online for ${uptime}`
-    : target.status === 'down' ? 'offline' : 'checking...';
+    ? `${uptime}`
+    : target.status === 'down' ? 'offline' : 'pending';
 
-  return `${server} **${target.name}** — discord: ${discord} ${discordLabel} | server: ${latency} | ${uptimeStr}`;
+  return {
+    name: target.name,
+    server: { status: server, label: target.status, latency },
+    discord: { emoji: discord, label: discordLabel },
+    uptime: uptimeStr,
+  };
 }
 
 // Components v2 flag — pass as flags in the message options
@@ -51,7 +56,7 @@ function buildMonitorContainer(merged, page, totalPages, lastUpdated) {
 
   container.addTextDisplayComponents(
     new TextDisplayBuilder().setContent(
-      `## HeartBeat Monitor\nPage ${page} of ${totalPages} · updated <t:${Math.floor(lastUpdated / 1000)}:R>`
+      `## HeartBeat Monitor\nPage ${page}/${totalPages} · <t:${Math.floor(lastUpdated / 1000)}:R>`
     )
   );
 
@@ -60,14 +65,28 @@ function buildMonitorContainer(merged, page, totalPages, lastUpdated) {
   );
 
   for (const { target, dbBot } of merged) {
+    const stats = formatTarget(target, dbBot);
+
+    // Header with name and server status
     container.addTextDisplayComponents(
-      new TextDisplayBuilder().setContent(formatTarget(target, dbBot))
+      new TextDisplayBuilder().setContent(
+        `**${stats.server.status} ${stats.name}**`
+      )
+    );
+
+    // Details in a readable format
+    container.addTextDisplayComponents(
+      new TextDisplayBuilder().setContent(
+        `• Server: ${stats.server.label} (${stats.server.latency})\n` +
+        `• Discord: ${stats.discord.emoji} ${stats.discord.label}\n` +
+        `• Online: ${stats.uptime}`
+      )
+    );
+
+    container.addSeparatorComponents(
+      new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small)
     );
   }
-
-  container.addSeparatorComponents(
-    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small)
-  );
 
   const row = new ActionRowBuilder();
 
@@ -142,18 +161,47 @@ function buildSelectorContainer(targets) {
 function buildDetailContainer(target, dbBot) {
   const container = new ContainerBuilder();
 
-  const server       = STATUS_EMOJI[target.status] ?? '⚫';
-  const discord      = DISCORD_EMOJI[dbBot?.discord_status ?? 'offline'];
-  const discordLabel = DISCORD_LABEL[dbBot?.discord_status ?? 'offline'];
-  const uptime       = dbBot?.started_at ? onlineFor(dbBot.started_at) : null;
-  const uptimeStr    = uptime ? `online for ${uptime}` : 'not tracked yet';
+  const stats = formatTarget(target, dbBot);
 
+  // Title
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(`## ${stats.name}`)
+  );
+
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small)
+  );
+
+  // Server status
   container.addTextDisplayComponents(
     new TextDisplayBuilder().setContent(
-      `## ${target.name}\n` +
-      `${server} Server: **${target.status}**${target.avgMs ? ` | avg ${target.avgMs}ms` : ''}\n` +
-      `${discord} Discord: **${discordLabel}**\n` +
-      uptimeStr
+      `**Server Status**\n` +
+      `${stats.server.status} ${stats.server.label}\n` +
+      `Latency: ${stats.server.latency}`
+    )
+  );
+
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small)
+  );
+
+  // Discord status
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
+      `**Discord Status**\n` +
+      `${stats.discord.emoji} ${stats.discord.label}`
+    )
+  );
+
+  container.addSeparatorComponents(
+    new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small)
+  );
+
+  // Uptime
+  container.addTextDisplayComponents(
+    new TextDisplayBuilder().setContent(
+      `**Uptime**\n` +
+      `${stats.uptime}`
     )
   );
 
