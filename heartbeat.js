@@ -33,10 +33,10 @@ async function registerCommands() {
   const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
   try {
     await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+      Routes.applicationCommands(CLIENT_ID),
       { body: [heartbeatCommand.toJSON()] }
     );
-    console.log('Slash commands registered');
+    console.log('Slash commands registered globally');
   } catch (err) {
     console.error('Command registration failed:', err.message);
   }
@@ -69,10 +69,7 @@ client.once('ready', async () => {
 
       if (status === 'offline') {
         await setBotOffline(key);
-      }
-      // If online, we only stamp started_at if there isn't one already
-      // (don't overwrite a legitimate uptime on HeartBeat restart)
-      else {
+      } else {
         const { getBot } = require('./db');
         const existing = await getBot(key);
         if (!existing?.started_at) {
