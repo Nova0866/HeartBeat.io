@@ -1,12 +1,14 @@
 {
   "name": "heartbeatio",
-  "version": "1.0.0",
-  "description": "Mutual ping keeper for StarForge bots",
+  "version": "2.0.0",
+  "description": "Mutual ping keeper + Discord bot monitor for StarForge bots",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
+    "discord.js": "^14.18.0",
+    "@libsql/client": "^0.14.0",
     "express": "^4.18.2"
   }
 }
